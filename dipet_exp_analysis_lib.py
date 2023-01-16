@@ -37,6 +37,12 @@ from pyod.models.abod import ABOD
 from pyod.models.cblof import CBLOF
 # from pyod.models.feature_bagging import FeatureBagging
 from pyod.models.iforest import IForest
+from pyod.models.deep_svdd import DeepSVDD
+from pyod.models.alad import ALAD
+from pyod.models.so_gaal import SO_GAAL
+from pyod.models.mo_gaal import MO_GAAL
+from pyod.models.anogan import AnoGAN
+from pyod.models.lunar import LUNAR
 from pyod.models.auto_encoder import AutoEncoder
 from pyod.models.vae import VAE
 import time
@@ -72,6 +78,121 @@ classifiers = {
      'Auto Encoder (AE)':
      AutoEncoder(hidden_neurons=[64, 32, 32, 64], epochs=30, batch_size=32, dropout_rate=0.2,
                  contamination=contamination_est, verbose=1),
+    'DeepSVDD (DeepSVDD)':
+    DeepSVDD(use_ae=True,
+             hidden_neurons=[128, 64, 32],
+             hidden_activation='relu',
+             output_activation='sigmoid',
+             optimizer='adam',
+             epochs=20,
+             batch_size=64,
+             dropout_rate=0.3,
+             l2_regularizer=0.1,
+             validation_size=0.3,
+             preprocessing=True,
+             random_state=random_state,
+             contamination=contamination_est),
+    'DeepSVDD_nonae(60epochs)':
+    DeepSVDD(use_ae=False,
+             hidden_neurons=[128, 64, 32],
+             hidden_activation='relu',
+             output_activation='sigmoid',
+             optimizer='adam',
+             epochs=60,
+             batch_size=64,
+             dropout_rate=0.2,
+             l2_regularizer=0.1,
+             validation_size=0.1,
+             preprocessing=True,
+             random_state=random_state,
+             contamination=contamination_est),
+    'Variational auto encoder (VAE) [opacity09_gamma05]':
+    VAE(encoder_neurons=[128, 64, 32],
+        decoder_neurons=[32, 64, 128],
+        hidden_activation='relu',
+        # loss=keras.losses.mean_squared_error
+        gamma=0.5,
+        capacity=0.9,
+        epochs=30,
+        batch_size=32,
+        dropout_rate=0.2,
+        l2_regularizer=0.1,
+        contamination=contamination_est,
+        verbose=1),
+    'Adversarially Learned Anomaly Detection (ALAD)':
+    ALAD(
+        activation_hidden_gen='tanh',
+        activation_hidden_disc='tanh',
+        output_activation=None,
+        dropout_rate=0.2,
+        latent_dim=2,
+        dec_layers=[5, 10, 25],
+        enc_layers=[25, 10, 5],
+        disc_xx_layers=[25, 10, 5],
+        disc_zz_layers=[25, 10, 5],
+        disc_xz_layers=[25, 10, 5],
+        learning_rate_gen=0.0001,
+        learning_rate_disc=0.0001,
+        add_recon_loss=False,
+        lambda_recon_loss=0.1,
+        epochs=200,
+        verbose=0,
+        preprocessing=True,
+        add_disc_zz_loss=True,
+        spectral_normalization=False,
+        batch_size=32,
+        contamination=contamination_est
+    ),
+    'Anomaly Detection with Generative Adversarial networks (AnoGAN)':
+    AnoGAN(
+        activation_hidden='tanh',
+        dropout_rate=0.2,
+        latent_dim_G=2,
+        G_layers=[20, 10, 3, 10, 20],
+        verbose=0,
+        D_layers=[20, 10, 5],
+        index_D_layer_for_recon_error=1,
+        epochs=500,
+        preprocessing=False,
+        learning_rate=0.001,
+        learning_rate_query=0.01,
+        epochs_query=20,
+        batch_size=32,
+        output_activation=None,
+        contamination=contamination_est
+    ),
+    'Unifying Local Outlier Detection via Graph Neural Networks (LUNAR)':
+        LUNAR(
+            model_type='WEIGHT',
+            n_neighbours=5,
+            negative_sampling='MIXED',
+            val_size=0.1,
+            scaler=MinMaxScaler(),
+            epsilon=0.1,
+            proportion=1.0,
+            n_epochs=200,
+            lr=0.001,
+            wd=0.1,
+            verbose=1
+        ),
+    'Single-Objective Generative Adversarial Active Learning (SO-GAAL)':
+        SO_GAAL(
+            stop_epochs=30,
+            lr_d=0.01,
+            lr_g=0.0001,
+            momentum=0.6,
+            contamination=contamination_est
+        ),
+    'Multi-Objective Generative Adversarial Active Learning (MO-GAAL)':
+    MO_GAAL(
+        k=20,
+        stop_epochs=30,
+        lr_d=0.01,
+        lr_g=0.0001,
+        momentum=0.9,
+        contamination=contamination_est
+    )
+
 }
 
 if 'VAE' in sys.modules: 
